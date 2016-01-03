@@ -74,6 +74,7 @@ public class PositionProvider extends AbstractProvider<PositionEvent> {
 		Time t = null;
 		FaaMode mode = null;
 		GpsFixQuality fix = null;
+		Double hdop = null;
 
 		for (Sentence s : getSentences()) {
 			if (s instanceof RMCSentence) {
@@ -92,13 +93,15 @@ public class PositionProvider extends AbstractProvider<PositionEvent> {
 				GGASentence gga = (GGASentence) s;
 				p = gga.getPosition();
 				fix = gga.getFixQuality();
+
+				hdop = gga.getHorizontalDOP();
 			} else if (s instanceof GLLSentence && p == null) {
 				GLLSentence gll = (GLLSentence) s;
 				p = gll.getPosition();
 			}
 		}
 
-		return new PositionEvent(this, p, sog, cog, d, t, mode, fix);
+		return new PositionEvent(this, p, sog, cog, d, t, mode, fix, hdop);
 	}
 
 	/*

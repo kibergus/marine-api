@@ -46,6 +46,7 @@ public class PositionEvent extends ProviderEvent implements Cloneable {
 	private Time time;
 	private FaaMode mode;
 	private GpsFixQuality fix;
+	private Double hdop;
 
 	/**
 	 * Creates a new instance of PositionEvent.
@@ -53,7 +54,7 @@ public class PositionEvent extends ProviderEvent implements Cloneable {
 	 * @param source Source object of event
 	 */
 	public PositionEvent(Object source, Position p, double sog, double cog, Date d,
-			Time t, FaaMode m, GpsFixQuality fq) {
+			Time t, FaaMode m, GpsFixQuality fq, Double hdop) {
 		super(source);
 		position = p;
 		speed = sog;
@@ -62,6 +63,7 @@ public class PositionEvent extends ProviderEvent implements Cloneable {
 		time = t;
 		mode = m;
 		fix = fq;
+		this.hdop = hdop;
 	}
 
 	/*
@@ -71,7 +73,7 @@ public class PositionEvent extends ProviderEvent implements Cloneable {
 	@Override
 	public PositionEvent clone() {
 		return new PositionEvent(getSource(), position, speed, course, date, time,
-				mode, fix);
+				mode, fix, hdop);
 	}
 
 	/**
@@ -135,6 +137,10 @@ public class PositionEvent extends ProviderEvent implements Cloneable {
 	 */
 	public Time getTime() {
 		return time;
+	}
+
+	public Double getHdop() {
+		return hdop;
 	}
 
 	/*

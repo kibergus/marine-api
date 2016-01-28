@@ -20,9 +20,6 @@
  */
 package net.sf.marineapi.nmea.io;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import net.sf.marineapi.nmea.parser.SentenceFactory;
 import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.SentenceValidator;
@@ -34,12 +31,11 @@ import net.sf.marineapi.nmea.sentence.SentenceValidator;
  */
 abstract class AbstractDataReader implements DataReader {
 
-	private static final Logger LOG =
-		Logger.getLogger(AbstractDataReader.class.getName());
+	// Sleep time between failed read attempts to prevent busy-looping
+	private static final int SLEEP_TIME = 100;
 
 	private final SentenceReader parent;
 	private volatile boolean isRunning = true;
-	private int interval = SentenceReader.DEFAULT_INTERVAL;
 
 	/**
 	 * Creates a new instance.
@@ -48,13 +44,6 @@ abstract class AbstractDataReader implements DataReader {
 	 */
 	public AbstractDataReader(SentenceReader parent) {
 		this.parent = parent;
-	}
-
-	/* (non-Javadoc)
-	 * @see net.sf.marineapi.nmea.io.DataReader#getInterval()
-	 */
-	public int getInterval() {
-		return this.interval;
 	}
 
 	/**
@@ -94,41 +83,27 @@ abstract class AbstractDataReader implements DataReader {
 			try {
 				String data = read();
 				if (data == null) {
-					// Data source is exausted. It will not produce any more data.
-					// To avoid busy loop we stop reader thread.
-					isRunning = false;
-					break;
-				}
-
-				if (SentenceValidator.isValid(data)) {
+					Thread.sleep(SLEEP_TIME);
+				} else if (SentenceValidator.isValid(data)) {
 					monitor.refresh();
 					Sentence s = factory.createParser(data);
 					parent.fireSentenceEvent(s);
 				} else if (!SentenceValidator.isSentence(data)) {
 					parent.fireDataEvent(data);
 				}
-				monitor.tick();
 			} catch (Exception e) {
-				LOG.log(Level.WARNING, "Data read failed", e);
 				parent.handleException("Data read failed", e);
-
-				// To avoid busy loop in case of repeatable error we wait here a bit.
 				try {
-					Thread.sleep(this.interval);
+					Thread.sleep(SLEEP_TIME);
 				} catch (InterruptedException interruptException) {}
+			} finally {
+				monitor.tick();
 			}
 		}
 		monitor.reset();
 		parent.fireReadingStopped();
 	}
-	
-	/* (non-Javadoc)
-	 * @see net.sf.marineapi.nmea.io.DataReader#setInterval(int)
-	 */
-	public void setInterval(int interval) {
-		this.interval = interval;
-	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 

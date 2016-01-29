@@ -52,7 +52,10 @@ public enum FaaMode {
 	SIMULATED('S'),
 
 	/** No valid GPS data available. */
-	NONE('N');
+	NONE('N'),
+
+	/** Unknown */
+	FLOAT('F');
 
 	private final char mode;
 

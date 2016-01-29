@@ -93,9 +93,6 @@ abstract class AbstractDataReader implements DataReader {
 				}
 			} catch (Exception e) {
 				parent.handleException("Data read failed", e);
-				try {
-					Thread.sleep(SLEEP_TIME);
-				} catch (InterruptedException interruptException) {}
 			} finally {
 				monitor.tick();
 			}

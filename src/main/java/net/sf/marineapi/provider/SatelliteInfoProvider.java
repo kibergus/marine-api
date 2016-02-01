@@ -23,6 +23,7 @@ package net.sf.marineapi.provider;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.sentence.GSASentence;
 import net.sf.marineapi.nmea.sentence.GSVSentence;
@@ -57,7 +58,9 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 		GSASentence gsa = null;
 		List<SatelliteInfo> info = new ArrayList<SatelliteInfo>();
 
-		for (Sentence sentence : getSentences()) {
+		for (SentenceEvent e : events) {
+			Sentence sentence = e.getSentence();
+
 			if ("GSA".equals(sentence.getSentenceId())) {
 				gsa = (GSASentence) sentence;
 			} else if ("GSV".equals(sentence.getSentenceId())) {
@@ -81,7 +84,9 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 		boolean hasAllGSV = false;
 		int count = 0;
 		
-		for (Sentence s : getSentences()) {
+		for (SentenceEvent e : events) {
+			Sentence s = e.getSentence();
+
 			if ("GSV".equals(s.getSentenceId())) {
 				GSVSentence gsv = (GSVSentence) s;
 				if (!hasFirstGSV) {

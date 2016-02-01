@@ -20,6 +20,7 @@
  */
 package net.sf.marineapi.provider;
 
+import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.parser.DataNotAvailableException;
 import net.sf.marineapi.nmea.sentence.GGASentence;
@@ -78,7 +79,9 @@ public class PositionProvider extends AbstractProvider<PositionEvent> {
 		GpsFixQuality fix = null;
 		Double hdop = null;
 
-		for (Sentence s : getSentences()) {
+		for (SentenceEvent event : events) {
+			Sentence s = event.getSentence();
+
 			if (s instanceof RMCSentence) {
 				RMCSentence rmc = (RMCSentence) s;
 				sog = rmc.getSpeed();
@@ -143,7 +146,8 @@ public class PositionProvider extends AbstractProvider<PositionEvent> {
 	@Override
 	protected boolean isValid() {
 
-		for (Sentence s : getSentences()) {
+		for (SentenceEvent event : events) {
+			Sentence s = event.getSentence();
 
 			if (s instanceof RMCSentence) {
 				DataStatus ds = ((RMCSentence) s).getStatus();

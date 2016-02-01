@@ -20,6 +20,7 @@
  */
 package net.sf.marineapi.provider;
 
+import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.sentence.HeadingSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
@@ -51,7 +52,8 @@ public class HeadingProvider extends AbstractProvider<HeadingEvent> {
 	 */
 	@Override
 	protected HeadingEvent createProviderEvent() {
-		for (Sentence s : getSentences()) {
+		for (SentenceEvent e : events) {
+			Sentence s = e.getSentence();
 			if (s instanceof HeadingSentence) {
 				return new HeadingEvent(this, (HeadingSentence) s);
 			}

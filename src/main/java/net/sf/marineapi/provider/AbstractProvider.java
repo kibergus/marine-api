@@ -46,7 +46,7 @@ public abstract class AbstractProvider<T extends ProviderEvent> implements
 		SentenceListener {
 
 	private SentenceReader reader;
-	private List<SentenceEvent> events = new ArrayList<SentenceEvent>();
+	protected List<SentenceEvent> events = new ArrayList<SentenceEvent>();
 	private List<ProviderListener<T>> listeners = new ArrayList<ProviderListener<T>>();
 
 	/**
@@ -103,19 +103,6 @@ public abstract class AbstractProvider<T extends ProviderEvent> implements
 	}
 
 	/**
-	 * Returns the collected sentences.
-	 * 
-	 * @return List of sentences.
-	 */
-	protected final List<Sentence> getSentences() {
-		List<Sentence> s = new ArrayList<Sentence>();
-		for (SentenceEvent e : events) {
-			s.add(e.getSentence());
-		}
-		return s;
-	}
-
-	/**
 	 * Tells if the provider has captured all the specified sentences.
 	 * 
 	 * @param id Sentence type IDs to look for.
@@ -140,8 +127,8 @@ public abstract class AbstractProvider<T extends ProviderEvent> implements
 	 */
 	protected final boolean hasOne(String... id) {
 		List<String> ids = Arrays.asList(id);
-		for (Sentence s : getSentences()) {
-			if (ids.contains(s.getSentenceId())) {
+		for (SentenceEvent e : events) {
+			if (ids.contains(e.getSentence().getSentenceId())) {
 				return true;
 			}
 		}

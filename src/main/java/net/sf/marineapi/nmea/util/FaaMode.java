@@ -54,8 +54,11 @@ public enum FaaMode {
 	/** No valid GPS data available. */
 	NONE('N'),
 
-	/** Unknown */
+	/** Float RTK */
 	FLOAT('F');
+
+	/** Real time kinematic */
+	RTK('R');
 
 	private final char mode;
 

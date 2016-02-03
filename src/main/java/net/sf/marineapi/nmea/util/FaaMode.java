@@ -55,7 +55,7 @@ public enum FaaMode {
 	NONE('N'),
 
 	/** Float RTK */
-	FLOAT('F');
+	FLOAT('F'),
 
 	/** Real time kinematic */
 	RTK('R');

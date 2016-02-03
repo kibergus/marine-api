@@ -21,6 +21,7 @@
 package net.sf.marineapi.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.sf.marineapi.nmea.event.SentenceEvent;
@@ -62,7 +63,15 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 			Sentence sentence = e.getSentence();
 
 			if ("GSA".equals(sentence.getSentenceId())) {
-				gsa = (GSASentence) sentence;
+				GSASentence newGsa = (GSASentence) sentence;
+				if (gsa == null) {
+					gsa = newGsa;
+				} else {
+					List<String>satList = new ArrayList<String>();
+					satList.addAll(Arrays.asList(gsa.getSatelliteIds()));
+					satList.addAll(Arrays.asList(newGsa.getSatelliteIds()));
+					gsa.setSatelliteIds(satList.toArray(new String[satList.size()]));
+				}
 			} else if ("GSV".equals(sentence.getSentenceId())) {
 				GSVSentence gsv = (GSVSentence) sentence;
 				info.addAll(gsv.getSatelliteInfo());
@@ -78,28 +87,30 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 	 */
 	@Override
 	protected boolean isReady() {
-
-		boolean hasFirstGSV = false;
-		boolean hasLastGSV = false;
-		boolean hasAllGSV = false;
-		int count = 0;
+		// With introduction of glonass and galileo protocol became weird here.
+		// You usually get several GNGSA or GPGSA + GLGSA pair and sets of GPGSV and GLGSV.
+		// But there may be single GNGSA and sets of GPGSV and GLGSV messages.
+		// They may arrive in any order, including:
+		//    GNGSA, GNGSA, GPGSV, GLGSV
+		//    GPGSV, GLGSV, GPGSA
+		int firstGSVCount = 0;
+		int lastGSVCount = 0;
+		int gsaCount = 0;
 		
 		for (SentenceEvent e : events) {
 			Sentence s = e.getSentence();
 
-			if ("GSV".equals(s.getSentenceId())) {
+			if ("GSA".equals(s.getSentenceId())) {
+				++gsaCount;
+			} else if ("GSV".equals(s.getSentenceId())) {
 				GSVSentence gsv = (GSVSentence) s;
-				if (!hasFirstGSV) {
-					hasFirstGSV = gsv.isFirst();
-				}
-				if (!hasLastGSV) {
-					hasLastGSV = gsv.isLast();
-				}
-				hasAllGSV = (gsv.getSentenceCount() == ++count);
+				firstGSVCount += gsv.isFirst() ? 1 : 0;
+				lastGSVCount += gsv.isLast() ? 1 : 0;
 			}
 		}
 
-		return hasOne("GSA") && hasAllGSV && hasFirstGSV && hasLastGSV;
+		// >= here is used intetionally. I have receiver that reports single GPGSA for GPGSV and GLGSV
+		return gsaCount > 0 && firstGSVCount == lastGSVCount && firstGSVCount >= gsaCount;
 	}
 
 	/*

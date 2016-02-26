@@ -23,12 +23,15 @@ package net.sf.marineapi.provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.sentence.GSASentence;
 import net.sf.marineapi.nmea.sentence.GSVSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
+import net.sf.marineapi.nmea.sentence.TalkerId;
 import net.sf.marineapi.nmea.util.SatelliteInfo;
 import net.sf.marineapi.provider.event.SatelliteInfoEvent;
 
@@ -93,24 +96,29 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 		// They may arrive in any order, including:
 		//    GNGSA, GNGSA, GPGSV, GLGSV
 		//    GPGSV, GLGSV, GPGSA
-		int firstGSVCount = 0;
-		int lastGSVCount = 0;
+		int firstGsvCount = 0;
+		int lastGsvCount = 0;
 		int gsaCount = 0;
 		
+		Set<TalkerId> gsaTalkers = new TreeSet<>();
+		Set<TalkerId> gsvTalkers = new TreeSet<>();
+
 		for (SentenceEvent e : events) {
 			Sentence s = e.getSentence();
 
 			if ("GSA".equals(s.getSentenceId())) {
 				++gsaCount;
+				gsaTalkers.add(s.getTalkerId());
 			} else if ("GSV".equals(s.getSentenceId())) {
 				GSVSentence gsv = (GSVSentence) s;
-				firstGSVCount += gsv.isFirst() ? 1 : 0;
-				lastGSVCount += gsv.isLast() ? 1 : 0;
+				firstGsvCount += gsv.isFirst() ? 1 : 0;
+				lastGsvCount += gsv.isLast() ? 1 : 0;
+				gsvTalkers.add(s.getTalkerId());
 			}
 		}
 
 		// >= here is used intetionally. I have receiver that reports single GPGSA for GPGSV and GLGSV
-		return gsaCount > 0 && firstGSVCount == lastGSVCount && firstGSVCount >= gsaCount;
+		return gsaCount > 0 && firstGsvCount == lastGsvCount && firstGsvCount >= gsaCount && gsaTalkers.equals(gsvTalkers);
 	}
 
 	/*

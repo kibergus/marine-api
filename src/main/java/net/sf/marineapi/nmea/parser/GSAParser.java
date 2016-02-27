@@ -45,6 +45,8 @@ class GSAParser extends SentenceParser implements GSASentence {
 	private static final int HORIZONTAL_DOP = 15;
 	private static final int VERTICAL_DOP = 16;
 
+	private String[] satelliteIds;
+
 	/**
 	 * Creates a new instance of GSA parser.
 	 * 
@@ -53,6 +55,7 @@ class GSAParser extends SentenceParser implements GSASentence {
 	 */
 	public GSAParser(String nmea) {
 		super(nmea, SentenceId.GSA);
+		satelliteIds = null;
 	}
 
 	/**
@@ -101,13 +104,16 @@ class GSAParser extends SentenceParser implements GSASentence {
 	 * @see net.sf.marineapi.nmea.sentence.GSASentence#getSatelliteIds()
 	 */
 	public String[] getSatelliteIds() {
-		List<String> result = new ArrayList<String>();
-		for (int i = FIRST_SV; i <= LAST_SV; i++) {
-			if (hasValue(i)) {
-				result.add(getStringValue(i));
+		if (satelliteIds == null) {
+			List<String> result = new ArrayList<String>();
+			for (int i = FIRST_SV; i <= LAST_SV; i++) {
+				if (hasValue(i)) {
+					result.add(getStringValue(i));
+				}
 			}
+			satelliteIds = result.toArray(new String[result.size()]);
 		}
-		return result.toArray(new String[result.size()]);
+		return satelliteIds;
 	}
 
 	/*
@@ -162,14 +168,7 @@ class GSAParser extends SentenceParser implements GSASentence {
 	 * String[])
 	 */
 	public void setSatelliteIds(String[] ids) {
-		if (ids.length > (LAST_SV - FIRST_SV + 1)) {
-			throw new IllegalArgumentException("List length exceeded (12)");
-		}
-		int j = 0;
-		for (int i = FIRST_SV; i <= LAST_SV; i++) {
-			String id = (j < ids.length) ? ids[j++] : "";
-			setStringValue(i, id);
-		}
+		satelliteIds = ids;
 	}
 
 	/*

@@ -120,9 +120,8 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 			}
 		}
 
-		// >= here is used intetionally. I have receiver that reports single GPGSA for GPGSV and GLGSV
 		return gsaCount > 0 && firstGsvCount == lastGsvCount &&
-			firstGsvCount >= gsaCount &&
+			firstGsvCount == gsaCount &&
 			(gsaHasWildcardTalker || gsaTalkers.equals(gsvTalkers));
 	}
 

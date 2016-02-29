@@ -100,6 +100,7 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 		int lastGsvCount = 0;
 		int gsaCount = 0;
 		
+		boolean gsaHasWildcardTalker = false;
 		Set<TalkerId> gsaTalkers = new TreeSet<>();
 		Set<TalkerId> gsvTalkers = new TreeSet<>();
 
@@ -109,6 +110,8 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 			if ("GSA".equals(s.getSentenceId())) {
 				++gsaCount;
 				gsaTalkers.add(s.getTalkerId());
+				if (s.getTalkerId() == TalkerId.GN)
+	                gsaHasWildcardTalker = true;
 			} else if ("GSV".equals(s.getSentenceId())) {
 				GSVSentence gsv = (GSVSentence) s;
 				firstGsvCount += gsv.isFirst() ? 1 : 0;
@@ -118,7 +121,9 @@ public class SatelliteInfoProvider extends AbstractProvider<SatelliteInfoEvent> 
 		}
 
 		// >= here is used intetionally. I have receiver that reports single GPGSA for GPGSV and GLGSV
-		return gsaCount > 0 && firstGsvCount == lastGsvCount && firstGsvCount >= gsaCount && gsaTalkers.equals(gsvTalkers);
+		return gsaCount > 0 && firstGsvCount == lastGsvCount &&
+			firstGsvCount >= gsaCount &&
+			(gsaHasWildcardTalker || gsaTalkers.equals(gsvTalkers));
 	}
 
 	/*
